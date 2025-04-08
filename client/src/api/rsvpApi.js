@@ -4,7 +4,7 @@
  */
 
 const API_BASE_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:3000/dev";
+  process.env.REACT_APP_API_URL || "https://hq9dflz0gk.execute-api.us-west-2.amazonaws.com/prod";
 
 /**
  * Submit an RSVP form to the backend
@@ -56,7 +56,7 @@ export const getRsvpCount = async () => {
     console.error("Error fetching RSVP count:", error);
     // Return default values if API call fails
     return {
-      confirmedCount: 9, // Default mock value
+      confirmedCount: 0, // Default to zero if API call fails
       maxCount: 16,
       success: true,
     };

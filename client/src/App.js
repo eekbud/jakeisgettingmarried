@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Button, Alert } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
-import { getRsvpCount } from "./api/rsvpApi";
+import { getRsvpCount, submitRsvp } from "./api/rsvpApi";
 import { getGuestByCode } from "./constants/guestCodes";
 import Schedule from "./components/Schedule";
 
@@ -15,34 +15,39 @@ function App() {
     maxCount: MAX_ATTENDEES,
   });
 
+  // Loading state for RSVP operations
+  const [isLoading, setIsLoading] = useState(false);
+
   // Fetch RSVP count on component mount
   useEffect(() => {
-    const fetchRsvpCount = async () => {
-      try {
-        const data = await getRsvpCount();
-        if (data.success) {
-          setRsvpStats({
-            confirmedCount: data.confirmedCount,
-            maxCount: data.maxCount,
-          });
-        }
-      } catch (error) {
-        console.error("Failed to fetch RSVP count:", error);
-        // Keep the default values if there's an error
-      }
-    };
-
     fetchRsvpCount();
   }, []);
+
+  // Function to fetch RSVP count
+  const fetchRsvpCount = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getRsvpCount();
+      if (data.success) {
+        setRsvpStats({
+          confirmedCount: data.confirmedCount,
+          maxCount: data.maxCount,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch RSVP count:", error);
+      // Keep the default values if there's an error
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Initial form state
   const initialFormState = {
     name: "",
     email: "",
     phone: "",
-    attending: true,
-    arrivalDate: "2025-08-21",
-    departureDate: "2025-08-24",
+    attending: false,
     golfCourses: {
       paynesValley: true,
       paynesValleyTime: "7:00 AM",
@@ -50,7 +55,6 @@ function App() {
       buffaloRidgeTime: "11:00 AM",
       noGolf: false,
     },
-    rentalClubs: "no",
     boatExcursion: true,
     comments: "",
   };
@@ -59,25 +63,10 @@ function App() {
   const [submitted, setSubmitted] = useState(false);
   const [guestCode, setGuestCode] = useState(null);
   const [guestInfo, setGuestInfo] = useState(null);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
-  // Fetch RSVP count on component mount
+  // Check for guest code in URL parameters
   useEffect(() => {
-    const fetchRsvpCount = async () => {
-      try {
-        const data = await getRsvpCount();
-        if (data.success) {
-          setRsvpStats({
-            confirmedCount: data.confirmedCount,
-            maxCount: data.maxCount,
-          });
-        }
-      } catch (error) {
-        console.error("Failed to fetch RSVP count:", error);
-        // Keep the default values if there's an error
-      }
-    };
-
-    // Check for guest code in URL parameters
     const checkGuestCode = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get("code");
@@ -91,7 +80,6 @@ function App() {
       }
     };
 
-    fetchRsvpCount();
     checkGuestCode();
   }, []);
 
@@ -133,24 +121,40 @@ function App() {
 
   // Toggle options when clicking on the cost breakdown table rows
   const toggleOption = (option) => {
+    let updatedFormData;
+
     if (option === "paynesValley" || option === "buffaloRidge") {
-      setFormData((prevData) => ({
-        ...prevData,
+      updatedFormData = {
+        ...formData,
         golfCourses: {
-          ...prevData.golfCourses,
-          [option]: !prevData.golfCourses[option],
+          ...formData.golfCourses,
+          [option]: !formData.golfCourses[option],
           // If enabling a golf option, make sure noGolf is false
-          noGolf: prevData.golfCourses[option]
-            ? prevData.golfCourses.noGolf
+          noGolf: formData.golfCourses[option]
+            ? formData.golfCourses.noGolf
             : false,
         },
-      }));
+      };
+
+      setFormData(updatedFormData);
     } else if (option === "boatExcursion") {
-      setFormData((prevData) => ({
-        ...prevData,
-        boatExcursion: !prevData.boatExcursion,
-      }));
+      updatedFormData = {
+        ...formData,
+        boatExcursion: !formData.boatExcursion,
+      };
+
+      setFormData(updatedFormData);
     }
+
+    // Create a custom event with a flag to identify it as an option toggle
+    const customEvent = new Event("submit");
+    customEvent.isOptionToggle = true;
+
+    // Submit the updated form data to the backend
+    setTimeout(() => {
+      // Use setTimeout to ensure state is updated before submitting
+      handleSubmit(customEvent);
+    }, 0);
   };
 
   // Cost Breakdown Component
@@ -240,6 +244,54 @@ function App() {
     );
   };
 
+  // Update RSVP stats when form is submitted
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    // Determine if this is a checkbox toggle, option toggle, or a full form submission
+    const isCheckboxToggle = event.isCheckboxToggle === true;
+    const isOptionToggle = event.isOptionToggle === true;
+
+    setIsLoading(true);
+    try {
+      // For checkbox toggles, use the opposite of the current status
+      // This ensures we send the value that the user just selected, not what was in state before
+      const dataToSubmit = isCheckboxToggle
+        ? {
+            ...formData,
+            attending: !event.currentAttendingStatus, // Use the new value the user selected
+            guestCode,
+            guestName: guestInfo ? guestInfo.name : formData.name,
+          }
+        : {
+            ...formData,
+            guestCode,
+            guestName: guestInfo ? guestInfo.name : formData.name,
+          };
+
+      // Submit RSVP data to backend
+      const response = await submitRsvp(dataToSubmit);
+
+      if (response.success) {
+        // Fetch updated RSVP count after successful submission
+        await fetchRsvpCount();
+
+        // Only set submitted to true for explicit form submissions, not checkbox toggles or option toggles
+        if (!isCheckboxToggle && !isOptionToggle) {
+          setSubmitted(true);
+        }
+      } else {
+        console.error("Failed to submit RSVP:", response.message);
+        // Show error message to user (could add error state here)
+      }
+    } catch (error) {
+      console.error("Error submitting RSVP:", error);
+      // Show error message to user (could add error state here)
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="App">
       <Container className="py-4">
@@ -279,18 +331,36 @@ function App() {
                                   type="checkbox"
                                   className="giant-checkbox-input"
                                   checked={formData.attending}
-                                  onChange={() =>
+                                  onChange={() => {
+                                    // Mark that user has interacted with the checkbox
+                                    setHasInteracted(true);
+
+                                    // Get the current attending status before toggling
+                                    const currentAttendingStatus = formData.attending;
+
+                                    // Toggle attending status in the UI
                                     setFormData((prev) => ({
                                       ...prev,
                                       attending: !prev.attending,
-                                    }))
-                                  }
+                                    }));
+
+                                    // Create a custom event with a flag to identify it as a checkbox toggle
+                                    const customEvent = new Event("submit");
+                                    customEvent.isCheckboxToggle = true;
+                                    customEvent.currentAttendingStatus = currentAttendingStatus;
+
+                                    // Submit the form when checkbox is toggled
+                                    handleSubmit(customEvent);
+                                  }}
+                                  disabled={!guestCode}
                                 />
                                 <span className="giant-checkbox"></span>
                                 <span className="giant-checkbox-text">
                                   {formData.attending
                                     ? "I will be there!"
-                                    : "No, I can't come"}
+                                    : hasInteracted
+                                    ? "No, I can't come"
+                                    : "Attending?"}
                                 </span>
                               </label>
                             </div>
@@ -298,11 +368,10 @@ function App() {
 
                           <div className="mt-auto">
                             <div className="d-flex justify-content-between align-items-center mb-2 mb-md-3">
-                              <small className="text-muted">
-                                {formData.attending
-                                  ? `${rsvpStats.confirmedCount + 1} of ${
-                                      rsvpStats.maxCount
-                                    } friends joining`
+                              <small className="text-muted d-flex align-items-center">
+                                {/* Display accurate RSVP count */}
+                                {isLoading
+                                  ? "Loading..."
                                   : `${rsvpStats.confirmedCount} of ${rsvpStats.maxCount} friends joining`}
                               </small>
                               <div
@@ -310,21 +379,23 @@ function App() {
                                 style={{ height: "8px" }}
                               >
                                 <div
-                                  className="progress-bar bg-success"
+                                  className={`progress-bar ${
+                                    isLoading
+                                      ? "progress-bar-striped progress-bar-animated"
+                                      : "bg-success"
+                                  }`}
                                   role="progressbar"
                                   style={{
                                     width: `${
-                                      ((formData.attending
-                                        ? rsvpStats.confirmedCount + 1
-                                        : rsvpStats.confirmedCount) /
+                                      ((rsvpStats.confirmedCount +
+                                        (formData.attending ? 1 : 0)) /
                                         rsvpStats.maxCount) *
                                       100
                                     }%`,
                                   }}
                                   aria-valuenow={
-                                    formData.attending
-                                      ? rsvpStats.confirmedCount + 1
-                                      : rsvpStats.confirmedCount
+                                    rsvpStats.confirmedCount +
+                                    (formData.attending ? 1 : 0)
                                   }
                                   aria-valuemin="0"
                                   aria-valuemax={rsvpStats.maxCount}
@@ -344,23 +415,32 @@ function App() {
                     </div>
 
                     {/* Combined schedule and form content */}
-                    <div className="combined-content">
-                      {/* RSVP Form section */}
-                      {formData.attending && (
-                        <div className="rsvp-section mb-4">
-                          <h3 className="text-center mb-3 mb-md-4">
-                            RSVP Information for{" "}
-                            {guestInfo ? guestInfo.name : ""}
-                          </h3>
-                          <CostBreakdown />
-                        </div>
-                      )}
+                    {guestCode ? (
+                      <div className="combined-content">
+                        {/* RSVP Form section */}
+                        {formData.attending && (
+                          <div className="rsvp-section mb-4">
+                            <h3 className="text-center mb-3 mb-md-4">
+                              RSVP Information for{" "}
+                              {guestInfo ? guestInfo.name : ""}
+                            </h3>
+                            <CostBreakdown />
+                          </div>
+                        )}
 
-                      {/* Schedule section */}
-                      <div className="schedule-section mt-4">
-                        <Schedule attending={formData.attending} />
+                        {/* Schedule section */}
+                        <div className="schedule-section mt-4">
+                          <Schedule attending={formData.attending} />
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="text-center mt-4">
+                        <Alert variant="info">
+                          Please use your personal invitation link to view the
+                          full content.
+                        </Alert>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="text-center">

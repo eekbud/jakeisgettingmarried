@@ -9,68 +9,181 @@ const COUNTER_TABLE_NAME = process.env.COUNTER_TABLE_NAME;
 const MAX_ATTENDEES = 16;
 
 exports.handler = async (event) => {
+  // Route based on HTTP method
+  if (event.httpMethod === 'GET' && event.path === '/rsvp/count') {
+    return await getRsvpCount(event);
+  } else if (event.httpMethod === 'POST' && event.path === '/rsvp') {
+    return await handleRsvpSubmission(event);
+  } else {
+    // Handle unsupported methods
+    return {
+      statusCode: 405,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'Method not allowed',
+        success: false
+      })
+    };
+  }
+};
+
+// Handle RSVP form submissions
+const handleRsvpSubmission = async (event) => {
   try {
     // Parse the incoming request body
     const requestBody = JSON.parse(event.body);
     
-    // Generate a unique ID for the RSVP
-    const rsvpId = `rsvp_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+    // Check if a guestCode is provided
+    if (!requestBody.guestCode) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: 'Guest code is required',
+          success: false
+        })
+      };
+    }
     
-    // Add timestamp and ID to the RSVP data
-    const rsvpData = {
-      id: rsvpId,
-      timestamp: new Date().toISOString(),
-      ...requestBody
+    // First, check if a record with this guest code already exists
+    const queryParams = {
+      TableName: TABLE_NAME,
+      IndexName: 'guestCodeIndex', // Assuming you have a GSI on guestCode
+      KeyConditionExpression: 'guestCode = :guestCode',
+      ExpressionAttributeValues: {
+        ':guestCode': requestBody.guestCode
+      }
     };
     
-    // Store the RSVP data in DynamoDB
-    await dynamoDB.put({
-      TableName: TABLE_NAME,
-      Item: rsvpData
-    }).promise();
-    
-    // If the person is attending, update the counter
-    let counterResponse = null;
-    if (requestBody.attending === 'yes') {
-      // First get the current count
-      const counterData = await dynamoDB.get({
-        TableName: COUNTER_TABLE_NAME,
-        Key: { id: 'rsvp_counter' }
-      }).promise();
-      
-      // Calculate the new count
-      const currentCount = counterData.Item ? counterData.Item.count : 0;
-      
-      // Check if we've reached the maximum
-      if (currentCount >= MAX_ATTENDEES) {
-        return {
-          statusCode: 400,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            message: 'Sorry, all spots have been filled',
-            success: false
-          })
-        };
-      }
-      
-      // Update the counter
-      counterResponse = await dynamoDB.update({
-        TableName: COUNTER_TABLE_NAME,
-        Key: { id: 'rsvp_counter' },
-        UpdateExpression: 'SET #count = if_not_exists(#count, :zero) + :one',
-        ExpressionAttributeNames: {
-          '#count': 'count'
-        },
+    let existingRecord;
+    try {
+      const queryResult = await dynamoDB.query(queryParams).promise();
+      existingRecord = queryResult.Items && queryResult.Items.length > 0 ? queryResult.Items[0] : null;
+    } catch (error) {
+      console.error('Error querying for existing record:', error);
+      // If there's an error with the GSI query, try a scan as fallback
+      const scanParams = {
+        TableName: TABLE_NAME,
+        FilterExpression: 'guestCode = :guestCode',
         ExpressionAttributeValues: {
-          ':zero': 0,
-          ':one': 1
-        },
-        ReturnValues: 'UPDATED_NEW'
+          ':guestCode': requestBody.guestCode
+        }
+      };
+      
+      const scanResult = await dynamoDB.scan(scanParams).promise();
+      existingRecord = scanResult.Items && scanResult.Items.length > 0 ? scanResult.Items[0] : null;
+    }
+    
+    let rsvpId;
+    let timestamp;
+    
+    if (existingRecord) {
+      // Update existing record
+      rsvpId = existingRecord.id;
+      timestamp = existingRecord.timestamp;
+      
+      console.log('Updating existing record:', rsvpId);
+      console.log('Request body:', JSON.stringify(requestBody, null, 2));
+      
+      // Prepare update expression
+      const updateExpressions = [];
+      const expressionAttributeNames = {};
+      const expressionAttributeValues = {};
+      
+      // Add each field from the request body to the update expression
+      Object.keys(requestBody).forEach(key => {
+        if (key !== 'guestCode') { // Skip guestCode as it's the key
+          // Handle nested objects
+          if (typeof requestBody[key] === 'object' && requestBody[key] !== null) {
+            Object.keys(requestBody[key]).forEach(nestedKey => {
+              const attributePath = `#${key}.#${nestedKey}`;
+              const attributeValue = `:${key}_${nestedKey}`;
+              
+              updateExpressions.push(`${attributePath} = ${attributeValue}`);
+              expressionAttributeNames[`#${key}`] = key;
+              expressionAttributeNames[`#${nestedKey}`] = nestedKey;
+              expressionAttributeValues[attributeValue] = requestBody[key][nestedKey];
+            });
+          } else {
+            updateExpressions.push(`#${key} = :${key}`);
+            expressionAttributeNames[`#${key}`] = key;
+            expressionAttributeValues[`:${key}`] = requestBody[key];
+          }
+        }
+      });
+      
+      console.log('Update expression:', `SET ${updateExpressions.join(', ')}`);
+      console.log('Expression attribute names:', JSON.stringify(expressionAttributeNames, null, 2));
+      console.log('Expression attribute values:', JSON.stringify(expressionAttributeValues, null, 2));
+      
+      // Update the record
+      await dynamoDB.update({
+        TableName: TABLE_NAME,
+        Key: { id: rsvpId },
+        UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues
+      }).promise();
+    } else {
+      // Create a new record
+      rsvpId = `rsvp_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+      timestamp = new Date().toISOString();
+      
+      // Add timestamp and ID to the RSVP data
+      const rsvpData = {
+        id: rsvpId,
+        timestamp: timestamp,
+        ...requestBody
+      };
+      
+      // Store the RSVP data in DynamoDB
+      await dynamoDB.put({
+        TableName: TABLE_NAME,
+        Item: rsvpData
       }).promise();
     }
+    
+    // Get the current attendance count by scanning the table for attending: true
+    const scanParams = {
+      TableName: TABLE_NAME,
+      FilterExpression: "attending = :attending",
+      ExpressionAttributeValues: {
+        ":attending": true
+      }
+    };
+    
+    const attendingData = await dynamoDB.scan(scanParams).promise();
+    const confirmedCount = attendingData.Items.length;
+    
+    // Check if we've reached the maximum
+    if (confirmedCount > MAX_ATTENDEES) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: 'Sorry, all spots have been filled',
+          success: false
+        })
+      };
+    }
+    
+    // Update the counter in the counter table
+    await dynamoDB.put({
+      TableName: COUNTER_TABLE_NAME,
+      Item: {
+        id: 'rsvp_counter',
+        count: confirmedCount
+      }
+    }).promise();
     
     // Return success response
     return {
@@ -80,9 +193,9 @@ exports.handler = async (event) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        message: 'RSVP submitted successfully',
+        message: existingRecord ? 'RSVP updated successfully' : 'RSVP submitted successfully',
         rsvpId: rsvpId,
-        confirmedCount: counterResponse ? counterResponse.Attributes.count : null,
+        confirmedCount: confirmedCount,
         success: true
       })
     };
@@ -106,12 +219,19 @@ exports.handler = async (event) => {
 };
 
 // Helper function to get current RSVP count
-exports.getRsvpCount = async () => {
+const getRsvpCount = async (event) => {
   try {
-    const counterData = await dynamoDB.get({
-      TableName: COUNTER_TABLE_NAME,
-      Key: { id: 'rsvp_counter' }
-    }).promise();
+    // Get the current attendance count by scanning the table for attending: true
+    const scanParams = {
+      TableName: TABLE_NAME,
+      FilterExpression: "attending = :attending",
+      ExpressionAttributeValues: {
+        ":attending": true
+      }
+    };
+    
+    const attendingData = await dynamoDB.scan(scanParams).promise();
+    const confirmedCount = attendingData.Items.length;
     
     return {
       statusCode: 200,
@@ -120,7 +240,7 @@ exports.getRsvpCount = async () => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        confirmedCount: counterData.Item ? counterData.Item.count : 0,
+        confirmedCount: confirmedCount,
         maxCount: MAX_ATTENDEES,
         success: true
       })

@@ -25,9 +25,18 @@ Resources:
       AttributeDefinitions:
         - AttributeName: id
           AttributeType: S
+        - AttributeName: guestCode
+          AttributeType: S
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: guestCodeIndex
+          KeySchema:
+            - AttributeName: guestCode
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
       StreamSpecification:
         StreamViewType: NEW_AND_OLD_IMAGES
 
@@ -70,6 +79,12 @@ Resources:
           Properties:
             Path: /rsvp
             Method: post
+            RestApiId: !Ref ApiGateway
+        GetRsvpCountEvent:
+          Type: Api
+          Properties:
+            Path: /rsvp/count
+            Method: get
             RestApiId: !Ref ApiGateway
 
   # API Gateway for the RSVP API
