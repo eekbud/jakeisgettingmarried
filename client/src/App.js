@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Container, Row, Col, Card, Button, Alert } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
-import { getRsvpCount, submitRsvp } from "./api/rsvpApi";
+import { getRsvpCount, submitRsvp, getRsvpByGuestCode } from "./api/rsvpApi";
 import { getGuestByCode } from "./constants/guestCodes";
 import Schedule from "./components/Schedule";
 
@@ -35,7 +35,6 @@ function App() {
         });
       }
     } catch (error) {
-      console.error("Failed to fetch RSVP count:", error);
       // Keep the default values if there's an error
     } finally {
       setIsLoading(false);
@@ -43,7 +42,7 @@ function App() {
   };
 
   // Initial form state
-  const initialFormState = {
+  const initialFormState = useMemo(() => ({
     name: "",
     email: "",
     phone: "",
@@ -57,7 +56,7 @@ function App() {
     },
     boatExcursion: true,
     comments: "",
-  };
+  }), []);
 
   const [formData, setFormData] = useState(initialFormState);
   const [submitted, setSubmitted] = useState(false);
@@ -67,7 +66,7 @@ function App() {
 
   // Check for guest code in URL parameters
   useEffect(() => {
-    const checkGuestCode = () => {
+    const checkGuestCode = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get("code");
 
@@ -76,12 +75,38 @@ function App() {
         if (guest) {
           setGuestCode(code);
           setGuestInfo(guest);
+
+          // Fetch previous RSVP data for this guest
+          setIsLoading(true);
+          try {
+            const response = await getRsvpByGuestCode(code);
+            if (response.success && response.data) {
+              // Update form data with previously saved values
+              setFormData({
+                ...initialFormState,
+                ...response.data,
+                // Ensure nested objects are properly merged
+                golfCourses: {
+                  ...initialFormState.golfCourses,
+                  ...(response.data.golfCourses || {})
+                }
+              });
+
+              // If they've submitted before, they've interacted with the form
+              setHasInteracted(true);
+            }
+          } catch (error) {
+            // Handle error silently
+          } finally {
+            setIsLoading(false);
+          }
         }
       }
     };
 
     checkGuestCode();
-  }, []);
+    fetchRsvpCount();
+  }, [initialFormState]);
 
   // Constants for cost calculation
   const COSTS = {
@@ -254,20 +279,25 @@ function App() {
 
     setIsLoading(true);
     try {
-      // For checkbox toggles, use the opposite of the current status
-      // This ensures we send the value that the user just selected, not what was in state before
+      // For checkbox toggles, use the explicit new value
       const dataToSubmit = isCheckboxToggle
         ? {
             ...formData,
-            attending: !event.currentAttendingStatus, // Use the new value the user selected
+            attending: event.newAttendingStatus, // Use the explicit new value
             guestCode,
             guestName: guestInfo ? guestInfo.name : formData.name,
           }
         : {
             ...formData,
+            attending: formData.attending, // Use the current attending value
             guestCode,
             guestName: guestInfo ? guestInfo.name : formData.name,
           };
+
+      // Remove id field if it exists to prevent update errors
+      if (dataToSubmit.id) {
+        delete dataToSubmit.id;
+      }
 
       // Submit RSVP data to backend
       const response = await submitRsvp(dataToSubmit);
@@ -281,12 +311,10 @@ function App() {
           setSubmitted(true);
         }
       } else {
-        console.error("Failed to submit RSVP:", response.message);
-        // Show error message to user (could add error state here)
+        // Handle error silently
       }
     } catch (error) {
-      console.error("Error submitting RSVP:", error);
-      // Show error message to user (could add error state here)
+      // Handle error silently
     } finally {
       setIsLoading(false);
     }
@@ -337,26 +365,32 @@ function App() {
 
                                     // Get the current attending status before toggling
                                     const currentAttendingStatus = formData.attending;
-
+                                    
                                     // Toggle attending status in the UI
+                                    const newAttendingStatus = !currentAttendingStatus;
                                     setFormData((prev) => ({
                                       ...prev,
-                                      attending: !prev.attending,
+                                      attending: newAttendingStatus,
                                     }));
 
                                     // Create a custom event with a flag to identify it as a checkbox toggle
                                     const customEvent = new Event("submit");
                                     customEvent.isCheckboxToggle = true;
                                     customEvent.currentAttendingStatus = currentAttendingStatus;
+                                    customEvent.newAttendingStatus = newAttendingStatus;
 
                                     // Submit the form when checkbox is toggled
-                                    handleSubmit(customEvent);
+                                    setTimeout(() => {
+                                      handleSubmit(customEvent);
+                                    }, 0);
                                   }}
                                   disabled={!guestCode}
                                 />
                                 <span className="giant-checkbox"></span>
                                 <span className="giant-checkbox-text">
-                                  {formData.attending
+                                  {isLoading
+                                    ? "Loading..."
+                                    : formData.attending
                                     ? "I will be there!"
                                     : hasInteracted
                                     ? "No, I can't come"

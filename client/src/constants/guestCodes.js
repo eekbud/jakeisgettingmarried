@@ -5,6 +5,7 @@
 
 export const GUEST_CODES = {
   c3d5e8: { name: "Cole Horchler", phone: "480-772-5592" },
+  d6e9f1: { name: "Jake Flick", phone: "480-209-9357" },
   f2g4h6: { name: "Wyatt McPherson", phone: "480-993-5988" },
   j8k1l3: { name: "Drew Tsao", phone: "480-323-0900" },
   m5n7p9: { name: "Todd Bridges", phone: "408-334-0748" },

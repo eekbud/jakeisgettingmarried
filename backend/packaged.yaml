@@ -53,7 +53,7 @@ Resources:
   SubmitRsvpFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://jake-bachelor-party-deployment-1744097916/fc761ba9b1618a2f276c0c0f934a2673
+      CodeUri: s3://jake-bachelor-party-deployment-1744099481/088266e3f94289b319d47a5cc64aabb2
       Handler: submitRsvp.handler
       Runtime: nodejs16.x
       Architectures:
@@ -85,6 +85,13 @@ Resources:
           Type: Api
           Properties:
             Path: /rsvp/count
+            Method: get
+            RestApiId:
+              Ref: ApiGateway
+        GetRsvpByGuestCodeEvent:
+          Type: Api
+          Properties:
+            Path: /rsvp/guest/{guestCode}
             Method: get
             RestApiId:
               Ref: ApiGateway

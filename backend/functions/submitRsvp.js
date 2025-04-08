@@ -8,22 +8,59 @@ const TABLE_NAME = process.env.RSVP_TABLE_NAME;
 const COUNTER_TABLE_NAME = process.env.COUNTER_TABLE_NAME;
 const MAX_ATTENDEES = 16;
 
-exports.handler = async (event) => {
-  // Route based on HTTP method
-  if (event.httpMethod === 'GET' && event.path === '/rsvp/count') {
-    return await getRsvpCount(event);
-  } else if (event.httpMethod === 'POST' && event.path === '/rsvp') {
-    return await handleRsvpSubmission(event);
-  } else {
-    // Handle unsupported methods
+// Helper function to get RSVP data by guest code
+const getRsvpByGuestCode = async (event) => {
+  try {
+    // Extract the guest code from the path parameter
+    const guestCode = event.pathParameters ? event.pathParameters.guestCode : null;
+    
+    if (!guestCode) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: 'Guest code is required',
+          success: false
+        })
+      };
+    }
+    
+    // Query for records with this guest code
+    const scanParams = {
+      TableName: TABLE_NAME,
+      FilterExpression: "guestCode = :guestCode",
+      ExpressionAttributeValues: {
+        ":guestCode": guestCode
+      }
+    };
+    
+    const result = await dynamoDB.scan(scanParams).promise();
+    const rsvpData = result.Items && result.Items.length > 0 ? result.Items[0] : null;
+    
     return {
-      statusCode: 405,
+      statusCode: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        message: 'Method not allowed',
+        success: true,
+        data: rsvpData
+      })
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'Error getting RSVP data',
+        error: error.message,
         success: false
       })
     };
@@ -66,7 +103,6 @@ const handleRsvpSubmission = async (event) => {
       const queryResult = await dynamoDB.query(queryParams).promise();
       existingRecord = queryResult.Items && queryResult.Items.length > 0 ? queryResult.Items[0] : null;
     } catch (error) {
-      console.error('Error querying for existing record:', error);
       // If there's an error with the GSI query, try a scan as fallback
       const scanParams = {
         TableName: TABLE_NAME,
@@ -88,9 +124,6 @@ const handleRsvpSubmission = async (event) => {
       rsvpId = existingRecord.id;
       timestamp = existingRecord.timestamp;
       
-      console.log('Updating existing record:', rsvpId);
-      console.log('Request body:', JSON.stringify(requestBody, null, 2));
-      
       // Prepare update expression
       const updateExpressions = [];
       const expressionAttributeNames = {};
@@ -98,7 +131,7 @@ const handleRsvpSubmission = async (event) => {
       
       // Add each field from the request body to the update expression
       Object.keys(requestBody).forEach(key => {
-        if (key !== 'guestCode') { // Skip guestCode as it's the key
+        if (key !== 'guestCode' && key !== 'id') { // Skip guestCode and id as they are keys
           // Handle nested objects
           if (typeof requestBody[key] === 'object' && requestBody[key] !== null) {
             Object.keys(requestBody[key]).forEach(nestedKey => {
@@ -118,9 +151,14 @@ const handleRsvpSubmission = async (event) => {
         }
       });
       
-      console.log('Update expression:', `SET ${updateExpressions.join(', ')}`);
-      console.log('Expression attribute names:', JSON.stringify(expressionAttributeNames, null, 2));
-      console.log('Expression attribute values:', JSON.stringify(expressionAttributeValues, null, 2));
+      // Explicitly ensure attending is included in the update
+      if (requestBody.hasOwnProperty('attending')) {
+        if (!expressionAttributeNames['#attending']) {
+          updateExpressions.push('#attending = :attending');
+          expressionAttributeNames['#attending'] = 'attending';
+          expressionAttributeValues[':attending'] = requestBody.attending;
+        }
+      }
       
       // Update the record
       await dynamoDB.update({
@@ -200,9 +238,6 @@ const handleRsvpSubmission = async (event) => {
       })
     };
   } catch (error) {
-    console.error('Error processing RSVP:', error);
-    
-    // Return error response
     return {
       statusCode: 500,
       headers: {
@@ -246,8 +281,6 @@ const getRsvpCount = async (event) => {
       })
     };
   } catch (error) {
-    console.error('Error getting RSVP count:', error);
-    
     return {
       statusCode: 500,
       headers: {
@@ -257,6 +290,30 @@ const getRsvpCount = async (event) => {
       body: JSON.stringify({
         message: 'Error getting RSVP count',
         error: error.message,
+        success: false
+      })
+    };
+  }
+};
+
+// Main handler function for all RSVP-related operations
+exports.handler = async (event) => {
+  // Route based on HTTP method and path
+  if (event.httpMethod === 'POST' && event.path.endsWith('/rsvp')) {
+    return handleRsvpSubmission(event);
+  } else if (event.httpMethod === 'GET' && event.path.endsWith('/rsvp/count')) {
+    return getRsvpCount(event);
+  } else if (event.httpMethod === 'GET' && event.path.match(/\/rsvp\/guest\/[^\/]+$/)) {
+    return getRsvpByGuestCode(event);
+  } else {
+    return {
+      statusCode: 405,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'Method not allowed',
         success: false
       })
     };

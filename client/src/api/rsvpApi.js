@@ -62,3 +62,33 @@ export const getRsvpCount = async () => {
     };
   }
 };
+
+/**
+ * Get RSVP data for a specific guest by code
+ * @param {string} guestCode - The unique guest code
+ * @returns {Promise} - Promise with the guest's RSVP data
+ */
+export const getRsvpByGuestCode = async (guestCode) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/rsvp/guest/${guestCode}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Error getting RSVP data");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching RSVP data:", error);
+    // Return null if API call fails
+    return {
+      success: false,
+      data: null,
+    };
+  }
+};
