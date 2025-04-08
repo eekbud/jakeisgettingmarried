@@ -3,6 +3,8 @@ import { Container, Row, Col, Card, Button, Alert } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 import { getRsvpCount } from "./api/rsvpApi";
+import { getGuestByCode } from "./constants/guestCodes";
+import Schedule from "./components/Schedule";
 
 const MAX_ATTENDEES = 16;
 
@@ -55,6 +57,43 @@ function App() {
 
   const [formData, setFormData] = useState(initialFormState);
   const [submitted, setSubmitted] = useState(false);
+  const [guestCode, setGuestCode] = useState(null);
+  const [guestInfo, setGuestInfo] = useState(null);
+
+  // Fetch RSVP count on component mount
+  useEffect(() => {
+    const fetchRsvpCount = async () => {
+      try {
+        const data = await getRsvpCount();
+        if (data.success) {
+          setRsvpStats({
+            confirmedCount: data.confirmedCount,
+            maxCount: data.maxCount,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch RSVP count:", error);
+        // Keep the default values if there's an error
+      }
+    };
+
+    // Check for guest code in URL parameters
+    const checkGuestCode = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
+
+      if (code) {
+        const guest = getGuestByCode(code);
+        if (guest) {
+          setGuestCode(code);
+          setGuestInfo(guest);
+        }
+      }
+    };
+
+    fetchRsvpCount();
+    checkGuestCode();
+  }, []);
 
   // Constants for cost calculation
   const COSTS = {
@@ -90,250 +129,6 @@ function App() {
     }
 
     return total;
-  };
-
-  const renderSchedule = () => {
-    return (
-      <div className="schedule-container">
-        <h2 className="text-center mb-4">
-          {formData.attending ? "Weekend Schedule" : "What You'll Be Missing!"}
-        </h2>
-        <p className="text-center mb-4">
-          Join us for an unforgettable weekend at Big Cedar Lodge in Ridgedale,
-          Missouri!
-        </p>
-
-        <div className="day-container">
-          <h3>Thursday, August 21, 2025</h3>
-          <ul className="timeline">
-            <li>
-              <div className="time">12:00 PM - 5:00 PM</div>
-              <div className="event">
-                <h4>Arrival & Boat Excursion</h4>
-                <p>
-                  Check in to Big Cedar Lodge and settle into our lakeside
-                  cottages.
-                </p>
-                <p>
-                  Enjoy a 5-hour boat excursion on Table Rock Lake with a Tahoe
-                  T-21 boat rental ($510.33 total, approximately $32 per
-                  person).
-                </p>
-              </div>
-            </li>
-            <li>
-              <div className="time">6:00 PM</div>
-              <div className="event">
-                <h4>Welcome Dinner</h4>
-                <p>
-                  Group dinner at Osage Restaurant with drinks and toasts to the
-                  groom.
-                </p>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <div className="day-container">
-          <h3>Friday, August 22, 2025</h3>
-          <ul className="timeline">
-            <li>
-              <div className="time">7:00 AM - 7:30 AM</div>
-              <div className="event">
-                <h4>Tee Times at Payne's Valley</h4>
-                <p>Available tee times: 7:00 AM, 7:10 AM, and 7:30 AM</p>
-                <p>
-                  Designed by Tiger Woods, this is Big Cedar's premier
-                  championship course ($400 per player).
-                </p>
-              </div>
-            </li>
-            <li>
-              <div className="time">1:00 PM</div>
-              <div className="event">
-                <h4>Lunch at Mountain Top Grill</h4>
-                <p>Casual lunch with the group after our morning round.</p>
-              </div>
-            </li>
-            <li>
-              <div className="time">3:00 PM - 6:00 PM</div>
-              <div className="event">
-                <h4>Free Time</h4>
-                <p>
-                  Relax at the resort, enjoy the spa, or explore the property.
-                </p>
-              </div>
-            </li>
-            <li>
-              <div className="time">7:00 PM</div>
-              <div className="event">
-                <h4>Group Dinner</h4>
-                <p>
-                  Dinner at Devil's Pool Restaurant with specialty cocktails and
-                  local cuisine.
-                </p>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <div className="day-container">
-          <h3>Saturday, August 23, 2025</h3>
-          <ul className="timeline">
-            <li>
-              <div className="time">11:00 AM - 11:30 AM</div>
-              <div className="event">
-                <h4>Tee Times at Buffalo Ridge</h4>
-                <p>Available tee times: 11:00 AM, 11:10 AM, and 11:30 AM</p>
-                <p>
-                  A beautiful course featuring dramatic elevation changes and
-                  native grasses ($225 per player).
-                </p>
-              </div>
-            </li>
-            <li>
-              <div className="time">5:00 PM</div>
-              <div className="event">
-                <h4>Bachelor Party Celebration</h4>
-                <p>
-                  Special evening celebration for Jake with games, drinks, and
-                  memories.
-                </p>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <div className="day-container">
-          <h3>Sunday, August 24, 2025</h3>
-          <ul className="timeline">
-            <li>
-              <div className="time">10:00 AM</div>
-              <div className="event">
-                <h4>Farewell Brunch</h4>
-                <p>Group brunch at Truman Coffee & Café before departures.</p>
-              </div>
-            </li>
-            <li>
-              <div className="time">12:00 PM</div>
-              <div className="event">
-                <h4>Check-out & Departures</h4>
-                <p>Official check-out time from the cottages.</p>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <div className="additional-info mt-5">
-          <h3>Accommodation Details</h3>
-          <div className="card mb-4">
-            <div className="card-body">
-              <h4 className="card-title">
-                Bass Pro Shops Lakeside Cottage with Loft
-              </h4>
-              <p className="card-text">
-                Our group will be staying in lakeside cottages at Big Cedar
-                Lodge, with 3 people per cottage.
-              </p>
-              <ul>
-                <li>
-                  <strong>Features:</strong>
-                  <ul>
-                    <li>Open-concept style with two queen-size beds</li>
-                    <li>
-                      Open loft with two twin-size beds (accessible by ladder)
-                    </li>
-                    <li>Shower-only bathroom with double sinks</li>
-                    <li>Kitchenette</li>
-                    <li>Wood-burning fireplace</li>
-                    <li>
-                      Covered entry porch and a covered porch with a gas grill
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  <strong>Rate Breakdown:</strong>
-                  <ul>
-                    <li>08/21/2025: $724.00 + $50.00 (Resort Fee)</li>
-                    <li>08/22/2025: $756.00 + $50.00 (Resort Fee)</li>
-                    <li>08/23/2025: $984.00 + $50.00 (Resort Fee)</li>
-                  </ul>
-                </li>
-                <li>
-                  <strong>Total Cost:</strong> $2,614.00 per cottage (exclusive
-                  of taxes)
-                </li>
-                <li>
-                  <strong>Deposit Required:</strong> $1,711.92 per cottage
-                </li>
-                <li>
-                  <strong>Cancellation Policy:</strong> All cancellations must
-                  be made 21 days prior to arrival date. $100
-                  Cancellation/Change Fee up to 07/31/2025.
-                </li>
-              </ul>
-              <p className="mt-3 mb-0">
-                <strong>Note:</strong> We will be booking as many cottages as
-                needed with 3 people per cottage.
-              </p>
-            </div>
-          </div>
-
-          <h3>Golf Course Information</h3>
-          <div className="table-responsive">
-            <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>Course</th>
-                  <th>Designer</th>
-                  <th>Rate</th>
-                  <th>Day</th>
-                  <th>Tee Times</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td data-label="Course">Payne's Valley</td>
-                  <td data-label="Designer">Tiger Woods</td>
-                  <td data-label="Rate">$400</td>
-                  <td data-label="Day">Friday, Aug 22</td>
-                  <td data-label="Tee Times">7:00 AM, 7:10 AM, 7:30 AM</td>
-                </tr>
-                <tr>
-                  <td data-label="Course">Buffalo Ridge</td>
-                  <td data-label="Designer">Tom Fazio</td>
-                  <td data-label="Rate">$225</td>
-                  <td data-label="Day">Saturday, Aug 23</td>
-                  <td data-label="Tee Times">11:00 AM, 11:10 AM, 11:30 AM</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <h3 className="mt-4">Boat Rental Information</h3>
-          <div className="card">
-            <div className="card-body">
-              <h4 className="card-title">Tahoe T-21</h4>
-              <p className="card-text">
-                We've reserved a boat for Thursday afternoon to enjoy Table Rock
-                Lake.
-              </p>
-              <ul>
-                <li>Date: Thursday, August 21, 2025</li>
-                <li>Time: 12:00 PM - 5:00 PM (5 hours)</li>
-                <li>
-                  Total Cost: $510.33 (approximately $32 per person when split)
-                </li>
-                <li>
-                  Features: Comfortable seating, perfect for cruising and
-                  swimming
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   // Toggle options when clicking on the cost breakdown table rows
@@ -392,7 +187,9 @@ function App() {
               >
                 <td data-label="Item">Payne's Valley Golf</td>
                 <td data-label="Cost">${COSTS.golf.paynesValley.toFixed(2)}</td>
-                <td data-label="Selected">{formData.golfCourses.paynesValley ? "✓" : "—"}</td>
+                <td data-label="Selected">
+                  {formData.golfCourses.paynesValley ? "✓" : "—"}
+                </td>
               </tr>
               <tr
                 className={
@@ -405,7 +202,9 @@ function App() {
               >
                 <td data-label="Item">Buffalo Ridge Golf</td>
                 <td data-label="Cost">${COSTS.golf.buffaloRidge.toFixed(2)}</td>
-                <td data-label="Selected">{formData.golfCourses.buffaloRidge ? "✓" : "—"}</td>
+                <td data-label="Selected">
+                  {formData.golfCourses.buffaloRidge ? "✓" : "—"}
+                </td>
               </tr>
               <tr
                 className={
@@ -416,7 +215,9 @@ function App() {
               >
                 <td data-label="Item">Boat Excursion</td>
                 <td data-label="Cost">${COSTS.boat.perPerson.toFixed(2)}</td>
-                <td data-label="Selected">{formData.boatExcursion ? "✓" : "—"}</td>
+                <td data-label="Selected">
+                  {formData.boatExcursion ? "✓" : "—"}
+                </td>
               </tr>
               <tr className="table-primary">
                 <th data-label="Item">Total Estimated Cost</th>
@@ -466,7 +267,8 @@ function App() {
                               <strong>Date:</strong> August 21-24, 2025 (4 days)
                             </p>
                             <p>
-                              <strong>Location:</strong> Big Cedar Lodge, Missouri
+                              <strong>Location:</strong> Big Cedar Lodge,
+                              Missouri
                             </p>
                           </div>
 
@@ -493,7 +295,7 @@ function App() {
                               </label>
                             </div>
                           </div>
-                          
+
                           <div className="mt-auto">
                             <div className="d-flex justify-content-between align-items-center mb-2 mb-md-3">
                               <small className="text-muted">
@@ -532,9 +334,9 @@ function App() {
                           </div>
                         </div>
                         <div className="col-md-4 d-flex align-items-center justify-content-center">
-                          <img 
-                            src="/jake.jpeg" 
-                            alt="Jake" 
+                          <img
+                            src="/jake.jpeg"
+                            alt="Jake"
                             className="img-fluid rounded jake-image"
                           />
                         </div>
@@ -546,14 +348,17 @@ function App() {
                       {/* RSVP Form section */}
                       {formData.attending && (
                         <div className="rsvp-section mb-4">
-                          <h3 className="text-center mb-3 mb-md-4">RSVP Information</h3>
+                          <h3 className="text-center mb-3 mb-md-4">
+                            RSVP Information for{" "}
+                            {guestInfo ? guestInfo.name : ""}
+                          </h3>
                           <CostBreakdown />
                         </div>
                       )}
 
                       {/* Schedule section */}
                       <div className="schedule-section mt-4">
-                        {renderSchedule()}
+                        <Schedule attending={formData.attending} />
                       </div>
                     </div>
                   </>

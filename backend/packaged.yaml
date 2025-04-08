@@ -1,7 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Jake's Bachelor Party RSVP Application
-
 Parameters:
   StageName:
     Type: String
@@ -13,78 +12,77 @@ Parameters:
   CertificateRegion:
     Type: String
     Default: us-east-1
-    Description: Region where the SSL certificate is stored (must be us-east-1 for CloudFront)
-
+    Description: Region where the SSL certificate is stored (must be us-east-1 for
+      CloudFront)
 Resources:
-  # DynamoDB Table for storing RSVP responses
   RsvpTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub JakeBachelorParty-RSVP-${StageName}
+      TableName:
+        Fn::Sub: JakeBachelorParty-RSVP-${StageName}
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
-        - AttributeName: id
-          AttributeType: S
+      - AttributeName: id
+        AttributeType: S
       KeySchema:
-        - AttributeName: id
-          KeyType: HASH
+      - AttributeName: id
+        KeyType: HASH
       StreamSpecification:
         StreamViewType: NEW_AND_OLD_IMAGES
-
-  # DynamoDB Table for tracking RSVP counts
   RsvpCounterTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub JakeBachelorParty-RSVP-Counter-${StageName}
+      TableName:
+        Fn::Sub: JakeBachelorParty-RSVP-Counter-${StageName}
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
-        - AttributeName: id
-          AttributeType: S
+      - AttributeName: id
+        AttributeType: S
       KeySchema:
-        - AttributeName: id
-          KeyType: HASH
-
-  # Lambda function to handle RSVP submissions
+      - AttributeName: id
+        KeyType: HASH
   SubmitRsvpFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/
+      CodeUri: s3://jake-bachelor-party-deployment-1743442146/5984860071ad28647f79ac60ecca0fc3
       Handler: submitRsvp.handler
       Runtime: nodejs16.x
       Architectures:
-        - x86_64
+      - x86_64
       MemorySize: 128
       Timeout: 10
       Environment:
         Variables:
-          RSVP_TABLE_NAME: !Ref RsvpTable
-          COUNTER_TABLE_NAME: !Ref RsvpCounterTable
+          RSVP_TABLE_NAME:
+            Ref: RsvpTable
+          COUNTER_TABLE_NAME:
+            Ref: RsvpCounterTable
       Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref RsvpTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref RsvpCounterTable
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: RsvpTable
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: RsvpCounterTable
       Events:
         ApiEvent:
           Type: Api
           Properties:
             Path: /rsvp
             Method: post
-            RestApiId: !Ref ApiGateway
-
-  # API Gateway for the RSVP API
+            RestApiId:
+              Ref: ApiGateway
   ApiGateway:
     Type: AWS::Serverless::Api
     Properties:
-      StageName: !Ref StageName
+      StageName:
+        Ref: StageName
       Cors:
         AllowMethods: "'GET,POST,OPTIONS'"
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
         AllowOrigin: "'*'"
       Auth:
         DefaultAuthorizer: NONE
-
-  # S3 Bucket for hosting the React application
   WebsiteBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -98,30 +96,31 @@ Resources:
         RestrictPublicBuckets: false
       OwnershipControls:
         Rules:
-          - ObjectOwnership: ObjectWriter
-
-  # Bucket policy to allow public access to the website
+        - ObjectOwnership: ObjectWriter
   WebsiteBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref WebsiteBucket
+      Bucket:
+        Ref: WebsiteBucket
       PolicyDocument:
         Statement:
-          - Action: s3:GetObject
-            Effect: Allow
-            Resource: !Sub ${WebsiteBucket.Arn}/*
-            Principal: '*'
-
-  # CloudFront distribution for the website
+        - Action: s3:GetObject
+          Effect: Allow
+          Resource:
+            Fn::Sub: ${WebsiteBucket.Arn}/*
+          Principal: '*'
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
         Origins:
-          - DomainName: !GetAtt WebsiteBucket.DomainName
-            Id: S3Origin
-            S3OriginConfig:
-              OriginAccessIdentity: ''
+        - DomainName:
+            Fn::GetAtt:
+            - WebsiteBucket
+            - DomainName
+          Id: S3Origin
+          S3OriginConfig:
+            OriginAccessIdentity: ''
         Enabled: true
         DefaultRootObject: index.html
         DefaultCacheBehavior:
@@ -133,18 +132,17 @@ Resources:
           ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_100
         ViewerCertificate:
-          AcmCertificateArn: !Ref CertificateArn
+          AcmCertificateArn:
+            Ref: CertificateArn
           SslSupportMethod: sni-only
           MinimumProtocolVersion: TLSv1.2_2021
         Aliases:
-          - jakeisgettingmarried.com
-          - www.jakeisgettingmarried.com
+        - jakeisgettingmarried.com
+        - www.jakeisgettingmarried.com
         CustomErrorResponses:
-          - ErrorCode: 404
-            ResponseCode: 200
-            ResponsePagePath: /index.html
-
-  # Route 53 record set for the domain
+        - ErrorCode: 404
+          ResponseCode: 200
+          ResponsePagePath: /index.html
   DomainRecordSet:
     Type: AWS::Route53::RecordSet
     Properties:
@@ -152,11 +150,12 @@ Resources:
       Name: jakeisgettingmarried.com.
       Type: A
       AliasTarget:
-        DNSName: !GetAtt CloudFrontDistribution.DomainName
-        HostedZoneId: Z2FDTNDATAQYW2 # CloudFront hosted zone ID (constant value)
+        DNSName:
+          Fn::GetAtt:
+          - CloudFrontDistribution
+          - DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
         EvaluateTargetHealth: false
-
-  # WWW subdomain record set
   WwwDomainRecordSet:
     Type: AWS::Route53::RecordSet
     Properties:
@@ -164,23 +163,28 @@ Resources:
       Name: www.jakeisgettingmarried.com.
       Type: A
       AliasTarget:
-        DNSName: !GetAtt CloudFrontDistribution.DomainName
-        HostedZoneId: Z2FDTNDATAQYW2 # CloudFront hosted zone ID (constant value)
+        DNSName:
+          Fn::GetAtt:
+          - CloudFrontDistribution
+          - DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
         EvaluateTargetHealth: false
-
 Outputs:
   ApiEndpoint:
-    Description: "API Gateway endpoint URL for the RSVP API"
-    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/rsvp"
-
+    Description: API Gateway endpoint URL for the RSVP API
+    Value:
+      Fn::Sub: https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/rsvp
   WebsiteURL:
-    Description: "URL for the S3 website"
-    Value: !GetAtt WebsiteBucket.WebsiteURL
-
+    Description: URL for the S3 website
+    Value:
+      Fn::GetAtt:
+      - WebsiteBucket
+      - WebsiteURL
   CloudFrontURL:
-    Description: "CloudFront Distribution URL"
-    Value: !Sub "https://${CloudFrontDistribution.DomainName}"
-
+    Description: CloudFront Distribution URL
+    Value:
+      Fn::Sub: https://${CloudFrontDistribution.DomainName}
   RsvpCounterTableName:
     Description: Name of the DynamoDB table for RSVP counter
-    Value: !Ref RsvpCounterTable
+    Value:
+      Ref: RsvpCounterTable
