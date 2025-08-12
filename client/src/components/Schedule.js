@@ -4,12 +4,10 @@ import React from "react";
  * Schedule component for Jake's Bachelor Golf Trip
  * Displays the detailed schedule for the weekend
  */
-const Schedule = ({ attending = true }) => {
+const Schedule = () => {
   return (
     <div className="schedule-container">
-      <h2 className="text-center mb-4">
-        {attending ? "Weekend Schedule" : "What You'll Be Missing!"}
-      </h2>
+      <h2 className="text-center mb-4">Weekend Schedule</h2>
       <p className="text-center mb-4">
         Join us for an unforgettable weekend at Big Cedar Lodge in Ridgedale,
         Missouri!
@@ -28,18 +26,17 @@ const Schedule = ({ attending = true }) => {
               </p>
               <p>
                 Enjoy a 5-hour boat excursion on Table Rock Lake with a Tahoe
-                T-21 boat rental ($510.33 total, approximately $32 per
-                person).
+                T-21 boat rental.
               </p>
             </div>
           </li>
           <li>
-            <div className="time">6:00 PM</div>
+            <div className="time">7:00 PM</div>
             <div className="event">
               <h4>Welcome Dinner</h4>
               <p>
-                Group dinner at Osage Restaurant with drinks and toasts to the
-                groom.
+                Group dinner at Tall Tales Bar & Grill with drinks and toasts to
+                the groom.
               </p>
             </div>
           </li>
@@ -50,43 +47,33 @@ const Schedule = ({ attending = true }) => {
         <h3>Friday, August 22, 2025</h3>
         <ul className="timeline">
           <li>
-            <div className="time">7:00 AM - 7:30 AM</div>
+            <div className="time">9:00 AM - 12:00 PM</div>
             <div className="event">
-              <h4>Tee Times at Payne's Valley</h4>
-              <p>Available tee times: 7:00 AM, 7:10 AM, and 7:30 AM</p>
+              <h4>
+                Top of the Rock Lost Canyon Cave & Nature Trail Golf Cart Ride
+              </h4>
               <p>
-                Designed by Tiger Woods, this is Big Cedar's newest and most
-                spectacular course. The 19th hole is an island green in a
-                canyon and is not to be missed!
-              </p>
-              <p className="text-muted">
-                <strong>Cost:</strong> $400 per person (includes cart and
-                range balls)
+                Whip a golf cart through the winding trail of a marvelous cave
+                where you can purchase refreshments at the Bat Bar as well as
+                the scenic overlook where you can step out onto our skybridge
+                for a breathtaking view of the Ozarks.
               </p>
             </div>
           </li>
           <li>
-            <div className="time">12:30 PM</div>
+            <div className="time">1:00 PM - 1:20 PM</div>
             <div className="event">
-              <h4>Lunch at Mountain Top Grill</h4>
+              <h4>Tee Times at Buffalo Ridge</h4>
+              <p>Available tee times: 1:00 PM, 1:10 PM, and 1:20 PM</p>
               <p>
-                Casual lunch at the clubhouse after golf with stunning views
-                of the Ozarks.
+                This Tom Fazio design is consistently rated as the best course
+                in Missouri and features free-ranging buffalo from the nearby
+                Dogwood Canyon Nature Park.
               </p>
             </div>
           </li>
           <li>
-            <div className="time">2:00 PM - 6:00 PM</div>
-            <div className="event">
-              <h4>Free Time / Resort Activities</h4>
-              <p>
-                Options include fishing, hiking, spa treatments, or relaxing
-                at the pool.
-              </p>
-            </div>
-          </li>
-          <li>
-            <div className="time">7:00 PM</div>
+            <div className="time">6:00 PM</div>
             <div className="event">
               <h4>Group Dinner at Devil's Pool Restaurant</h4>
               <p>
@@ -100,8 +87,7 @@ const Schedule = ({ attending = true }) => {
             <div className="event">
               <h4>Bonfire & Drinks</h4>
               <p>
-                Gather around the fire pit for drinks, cigars, and
-                storytelling.
+                Gather around the fire pit for drinks, cigars, and storytelling.
               </p>
             </div>
           </li>
@@ -112,38 +98,35 @@ const Schedule = ({ attending = true }) => {
         <h3>Saturday, August 23, 2025</h3>
         <ul className="timeline">
           <li>
-            <div className="time">11:00 AM - 11:30 AM</div>
+            <div className="time">10:00 AM - 12:00 PM</div>
             <div className="event">
-              <h4>Tee Times at Buffalo Ridge</h4>
-              <p>Available tee times: 11:00 AM, 11:10 AM, and 11:30 AM</p>
+              <h4>Breakfast & Recovery at The Truman Café</h4>
               <p>
-                This Tom Fazio design is consistently rated as the best course
-                in Missouri and features free-ranging buffalo from the nearby
-                Dogwood Canyon Nature Park.
-              </p>
-              <p className="text-muted">
-                <strong>Cost:</strong> $225 per person (includes cart and
-                range balls)
+                Enjoy a hearty breakfast at the legendary Truman Café and take
+                some time to rest and recover before heading out to Payne's
+                Valley.
               </p>
             </div>
           </li>
           <li>
-            <div className="time">4:30 PM</div>
+            <div className="time">1:30 PM - 1:50 PM</div>
             <div className="event">
-              <h4>19th Hole Drinks at Buffalo Bar</h4>
+              <h4>Tee Times at Payne's Valley</h4>
+              <p>Available tee times: 1:30 PM, 1:40 PM, and 1:50 PM</p>
               <p>
-                Post-round drinks and appetizers to celebrate (or commiserate
-                over) the day's golf.
+                Designed by Tiger Woods, this is Big Cedar's newest and most
+                spectacular course. The 19th hole is an island green in a canyon
+                and is not to be missed!
               </p>
             </div>
           </li>
           <li>
-            <div className="time">7:00 PM</div>
+            <div className="time">6:15 PM</div>
             <div className="event">
-              <h4>Bachelor Party Dinner at Worman House</h4>
+              <h4>Bachelor Party Dinner at Mountain Top Grill</h4>
               <p>
-                Upscale dining experience in the historic Worman House with a
-                private room for our group.
+                Upscale dining experience in the historic Mountain Top Grill
+                overlooking Mountain Top Course and Payne’s Valley Course.
               </p>
               <p>Special toasts and roasts of the groom!</p>
             </div>
@@ -151,10 +134,13 @@ const Schedule = ({ attending = true }) => {
           <li>
             <div className="time">9:30 PM</div>
             <div className="event">
-              <h4>Night Out</h4>
+              <h4>The Roast</h4>
               <p>
-                Transportation provided to and from Branson Landing for those
-                who want to continue the celebration.
+                Hosted by <strong>Alec Anson</strong>
+              </p>
+              <p>
+                The groom and his friends gather to roast the groom and
+                celebrate his upcoming marriage.
               </p>
             </div>
           </li>
@@ -164,16 +150,6 @@ const Schedule = ({ attending = true }) => {
       <div className="day-container">
         <h3>Sunday, August 24, 2025</h3>
         <ul className="timeline">
-          <li>
-            <div className="time">9:00 AM</div>
-            <div className="event">
-              <h4>Farewell Brunch</h4>
-              <p>
-                Casual brunch at the Truman Café to say our goodbyes before
-                departing.
-              </p>
-            </div>
-          </li>
           <li>
             <div className="time">11:00 AM</div>
             <div className="event">
