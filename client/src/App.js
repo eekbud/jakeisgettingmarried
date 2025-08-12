@@ -1,10 +1,39 @@
-import React from "react";
-import { Container, Row, Col, Card } from "react-bootstrap";
+import React, { useState } from "react";
+import { Container, Row, Col, Card, Nav } from "react-bootstrap";
 import Schedule from "./components/Schedule";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
+const TabContent = ({ activeTab }) => {
+  switch (activeTab) {
+    case "golf":
+      return (
+        <div className="p-3 border border-top-0 rounded-bottom">
+          <h4>Golf Group Details</h4>
+          <p>Details about the golf group will be shown here.</p>
+          {/* Add golf group content here */}
+        </div>
+      );
+    case "rooming":
+      return (
+        <div className="p-3 border border-top-0 rounded-bottom">
+          <h4>Rooming Details</h4>
+          <p>Room assignments and lodging information will be shown here.</p>
+          {/* Add rooming details content here */}
+        </div>
+      );
+    case "schedule":
+    default:
+      return (
+        <div className="schedule-section">
+          <Schedule />
+        </div>
+      );
+  }
+};
+
 function App() {
+  const [activeTab, setActiveTab] = useState("schedule");
   // Constants for cost calculation
   const COSTS = {
     accommodation: {
@@ -124,9 +153,32 @@ function App() {
                       <CostBreakdown />
                     </div>
 
-                    {/* Schedule section */}
-                    <div className="schedule-section mt-4">
-                      <Schedule />
+                    {/* Tab Navigation */}
+                    <div className="tabs-container mt-4">
+                      <Nav
+                        variant="tabs"
+                        defaultActiveKey="schedule"
+                        className="mb-3 justify-content-center"
+                        onSelect={(selectedKey) => setActiveTab(selectedKey)}
+                      >
+                        <Nav.Item>
+                          <Nav.Link eventKey="schedule" className="fw-bold">
+                            Schedule
+                          </Nav.Link>
+                        </Nav.Item>
+                        <Nav.Item>
+                          <Nav.Link eventKey="golf" className="fw-bold">
+                            Golf Groups
+                          </Nav.Link>
+                        </Nav.Item>
+                        <Nav.Item>
+                          <Nav.Link eventKey="rooming" className="fw-bold">
+                            Rooming Details
+                          </Nav.Link>
+                        </Nav.Item>
+                      </Nav>
+
+                      <TabContent activeTab={activeTab} />
                     </div>
                   </div>
                 </>
