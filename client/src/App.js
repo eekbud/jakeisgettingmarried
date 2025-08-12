@@ -3,23 +3,270 @@ import { Container, Row, Col, Card, Nav } from "react-bootstrap";
 import Schedule from "./components/Schedule";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
+import buffaloImage from "./assets/buffalo.jpg";
+import paynesImage from "./assets/paynes.jpg";
+import cottageImage from "./assets/cottage.jpg";
 
 const TabContent = ({ activeTab }) => {
   switch (activeTab) {
     case "golf":
       return (
         <div className="p-3 border border-top-0 rounded-bottom">
-          <h4>Golf Group Details</h4>
-          <p>Details about the golf group will be shown here.</p>
-          {/* Add golf group content here */}
+          <h3 className="text-center mb-4">Golf Group Details</h3>
+
+          {/* Buffalo Ridge Groups */}
+          <div className="course-section mb-5">
+            <h4 className="text-center mb-3" style={{ color: "#5a3921" }}>
+              🏌️ Buffalo Ridge
+            </h4>
+            <div className="row">
+              <div className="col-md-4 mb-3">
+                <div className="card h-100 shadow-sm">
+                  <div
+                    className="card-header text-center"
+                    style={{
+                      backgroundColor: "#3a5134",
+                      color: "rgba(245, 240, 230, 0.95)",
+                    }}
+                  >
+                    <h5 className="mb-0">Group 1</h5>
+                  </div>
+                  <div className="card-body" style={{ color: "#5a3921" }}>
+                    <ul className="list-unstyled mb-0">
+                      <li className="mb-2">
+                        <strong>👑 Jacob</strong>
+                      </li>
+                      <li className="mb-2">Todd</li>
+                      <li className="mb-2">Alec</li>
+                      <li className="mb-2">Drew</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div className="col-md-4 mb-3">
+                <div className="card h-100 shadow-sm">
+                  <div
+                    className="card-header text-center"
+                    style={{
+                      backgroundColor: "#3a5134",
+                      color: "#f5f0e6",
+                    }}
+                  >
+                    <h5 className="mb-0">Group 2</h5>
+                  </div>
+                  <div className="card-body" style={{ color: "#5a3921" }}>
+                    <ul className="list-unstyled mb-0">
+                      <li className="mb-2">Ryan</li>
+                      <li className="mb-2">Connor</li>
+                      <li className="mb-2">Angelo</li>
+                      <li className="mb-2">Klein</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div className="col-md-4 mb-3">
+                <div className="card h-100 shadow-sm">
+                  <div
+                    className="card-header text-center"
+                    style={{
+                      backgroundColor: "#3a5134",
+                      color: "#f5f0e6",
+                    }}
+                  >
+                    <h5 className="mb-0">Group 3</h5>
+                  </div>
+                  <div className="card-body" style={{ color: "#5a3921" }}>
+                    <ul className="list-unstyled mb-0">
+                      <li className="mb-2">GP</li>
+                      <li className="mb-2">Cole</li>
+                      <li className="mb-2">Wyatt</li>
+                      <li className="mb-2">Rob</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Buffalo Ridge Course Image */}
+            <div className="text-center mt-4">
+              <img
+                src={buffaloImage}
+                alt="Buffalo Ridge Golf Course"
+                className="img-fluid rounded shadow"
+                style={{ maxHeight: "500px", objectFit: "cover" }}
+              />
+            </div>
+          </div>
+
+          {/* Paynes Valley Groups */}
+          <div className="course-section">
+            <h4 className="text-center mb-3" style={{ color: "#5a3921" }}>
+              ⛳ Paynes Valley
+            </h4>
+            <div className="row">
+              <div className="col-md-4 mb-3">
+                <div className="card h-100 shadow-sm">
+                  <div
+                    className="card-header text-center"
+                    style={{
+                      backgroundColor: "#8b5a2b",
+                      color: "#f5f0e6",
+                    }}
+                  >
+                    <h5 className="mb-0">Group 1</h5>
+                  </div>
+                  <div className="card-body" style={{ color: "#5a3921" }}>
+                    <ul className="list-unstyled mb-0">
+                      <li className="mb-2">
+                        <strong>👑 Jacob</strong>
+                      </li>
+                      <li className="mb-2">Klein</li>
+                      <li className="mb-2">Connor</li>
+                      <li className="mb-2">Cole</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div className="col-md-4 mb-3">
+                <div className="card h-100 shadow-sm">
+                  <div
+                    className="card-header text-center"
+                    style={{
+                      backgroundColor: "#8b5a2b",
+                      color: "#f5f0e6",
+                    }}
+                  >
+                    <h5 className="mb-0">Group 2</h5>
+                  </div>
+                  <div className="card-body" style={{ color: "#5a3921" }}>
+                    <ul className="list-unstyled mb-0">
+                      <li className="mb-2">Drew</li>
+                      <li className="mb-2">Todd</li>
+                      <li className="mb-2">Wyatt</li>
+                      <li className="mb-2">Rob</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div className="col-md-4 mb-3">
+                <div className="card h-100 shadow-sm">
+                  <div
+                    className="card-header text-center"
+                    style={{
+                      backgroundColor: "#8b5a2b",
+                      color: "#f5f0e6",
+                    }}
+                  >
+                    <h5 className="mb-0">Group 3</h5>
+                  </div>
+                  <div className="card-body" style={{ color: "#5a3921" }}>
+                    <ul className="list-unstyled mb-0">
+                      <li className="mb-2">GP</li>
+                      <li className="mb-2">Ryan</li>
+                      <li className="mb-2">Alec</li>
+                      <li className="mb-2">Angelo</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Paynes Valley Course Image */}
+            <div className="text-center mt-4">
+              <img
+                src={paynesImage}
+                alt="Paynes Valley Golf Course"
+                className="img-fluid rounded shadow"
+                style={{ maxHeight: "500px", objectFit: "cover" }}
+              />
+            </div>
+          </div>
         </div>
       );
     case "rooming":
       return (
         <div className="p-3 border border-top-0 rounded-bottom">
-          <h4>Rooming Details</h4>
-          <p>Room assignments and lodging information will be shown here.</p>
-          {/* Add rooming details content here */}
+          <h3 className="text-center mb-4"> 🏠 Rooming Details</h3>
+
+          {/* Cabin Assignments */}
+          <div className="cabin-section">
+            <div className="row">
+              <div className="col-md-4 mb-3">
+                <div className="card h-100 shadow-sm">
+                  <div
+                    className="card-header text-center"
+                    style={{
+                      backgroundColor: "#8b5a2b",
+                      color: "#f5f0e6",
+                    }}
+                  >
+                    <h5 className="mb-0">Cabin 1</h5>
+                  </div>
+                  <div className="card-body" style={{ color: "#5a3921" }}>
+                    <ul className="list-unstyled mb-0">
+                      <li className="mb-2">
+                        <strong>👑 Jacob</strong>
+                      </li>
+                      <li className="mb-2">Drew</li>
+                      <li className="mb-2">Todd</li>
+                      <li className="mb-2">Ryan</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div className="col-md-4 mb-3">
+                <div className="card h-100 shadow-sm">
+                  <div
+                    className="card-header text-center"
+                    style={{
+                      backgroundColor: "#3a5134",
+                      color: "#f5f0e6",
+                    }}
+                  >
+                    <h5 className="mb-0">Cabin 2</h5>
+                  </div>
+                  <div className="card-body" style={{ color: "#5a3921" }}>
+                    <ul className="list-unstyled mb-0">
+                      <li className="mb-2">Connor</li>
+                      <li className="mb-2">Marco</li>
+                      <li className="mb-2">Angelo</li>
+                      <li className="mb-2">Jirak</li>
+                      <li className="mb-2">Alec</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div className="col-md-4 mb-3">
+                <div className="card h-100 shadow-sm">
+                  <div
+                    className="card-header text-center"
+                    style={{
+                      backgroundColor: "#8b5a2b",
+                      color: "#f5f0e6",
+                    }}
+                  >
+                    <h5 className="mb-0">Cabin 3</h5>
+                  </div>
+                  <div className="card-body" style={{ color: "#5a3921" }}>
+                    <ul className="list-unstyled mb-0">
+                      <li className="mb-2">GP</li>
+                      <li className="mb-2">Klein</li>
+                      <li className="mb-2">Wyatt</li>
+                      <li className="mb-2">Rob</li>
+                      <li className="mb-2">Cole</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Cottage/Cabin Image */}
+            <div className="text-center mt-4">
+              <img
+                src={cottageImage}
+                alt="Cabin Accommodations"
+                className="img-fluid rounded shadow"
+                style={{ maxHeight: "500px", objectFit: "cover" }}
+              />
+            </div>
+          </div>
         </div>
       );
     case "schedule":
@@ -146,12 +393,12 @@ function App() {
                   </div>
                   <div className="combined-content">
                     {/* RSVP Form section */}
-                    <div className="rsvp-section mb-4">
+                    {/* <div className="rsvp-section mb-4">
                       <h3 className="text-center mb-3 mb-md-4">
                         RSVP Information
                       </h3>
                       <CostBreakdown />
-                    </div>
+                    </div> */}
 
                     {/* Tab Navigation */}
                     <div className="tabs-container mt-4">

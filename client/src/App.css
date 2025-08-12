@@ -16,7 +16,8 @@
   transform: translateY(-5px);
 }
 
-h1, h3 {
+h1,
+h3 {
   color: #5a3921;
   font-weight: bold;
 }
@@ -64,7 +65,8 @@ h1, h3 {
   border-color: #3a5134;
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
   border-color: #8b5a2b;
   box-shadow: 0 0 0 0.25rem rgba(139, 90, 43, 0.25);
 }
@@ -192,7 +194,7 @@ h1, h3 {
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   min-width: 300px;
   text-align: center;
   user-select: none;
@@ -210,12 +212,12 @@ h1, h3 {
 
 .attendance-toggle:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .attendance-toggle:active {
   transform: translateY(1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Giant Checkbox */
@@ -290,7 +292,7 @@ h1, h3 {
 
 .giant-checkbox-label:hover .giant-checkbox {
   transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .giant-checkbox-label:active .giant-checkbox {
@@ -351,7 +353,7 @@ h1, h3 {
 }
 
 .timeline:before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   bottom: 0;
@@ -371,7 +373,7 @@ h1, h3 {
 }
 
 .timeline li:before {
-  content: '';
+  content: "";
   position: absolute;
   left: -2.25rem;
   top: 0.5rem;
@@ -469,7 +471,6 @@ h1, h3 {
 }
 
 h5 {
-  color: #3a5134;
   margin-top: 1rem;
   margin-bottom: 1.5rem;
   font-weight: 600;
@@ -482,7 +483,7 @@ h5 {
     margin: 0 10px;
     padding: 15px;
   }
-  
+
   .nav-tabs-wrapper {
     flex-direction: column;
     align-items: center;
@@ -603,7 +604,8 @@ h5 {
     font-size: 16px;
   }
 
-  p, li {
+  p,
+  li {
     font-size: 14px;
   }
 
@@ -627,7 +629,8 @@ h5 {
   }
 
   /* Improve table display on very small screens */
-  .table th, .table td {
+  .table th,
+  .table td {
     padding: 0.5rem;
   }
 
@@ -641,7 +644,8 @@ h5 {
   }
 
   /* Adjust buttons for small screens */
-  .btn-primary, .btn-outline-primary {
+  .btn-primary,
+  .btn-outline-primary {
     padding: 0.4rem 1rem;
     font-size: 14px;
   }
