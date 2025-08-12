@@ -281,6 +281,21 @@ const TabContent = ({ activeTab }) => {
 
 function App() {
   const [activeTab, setActiveTab] = useState("schedule");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState("");
+  const [showError, setShowError] = useState(false);
+
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault();
+    if (password === "jakeandmadi") {
+      setIsAuthenticated(true);
+      setShowError(false);
+    } else {
+      setShowError(true);
+      setPassword("");
+    }
+  };
+
   // Constants for cost calculation
   const COSTS = {
     accommodation: {
@@ -351,6 +366,49 @@ function App() {
       </div>
     );
   };
+
+  // If not authenticated, show password form
+  if (!isAuthenticated) {
+    return (
+      <div className="App">
+        <Container className="py-4">
+          <Row className="justify-content-center">
+            <Col lg={6} md={8}>
+              <Card className="shadow">
+                <Card.Body className="p-4">
+                  <h2 className="text-center mb-4">Enter Password</h2>
+                  <form onSubmit={handlePasswordSubmit}>
+                    <div className="mb-3">
+                      <input
+                        type="password"
+                        className="form-control form-control-lg"
+                        placeholder="Enter password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                    {showError && (
+                      <div className="alert alert-danger text-center">
+                        Incorrect password. Please try again.
+                      </div>
+                    )}
+                    <button
+                      type="submit"
+                      className="btn btn-primary btn-lg w-100"
+                      style={{ backgroundColor: "#3a5134", borderColor: "#3a5134" }}
+                    >
+                      Access Content
+                    </button>
+                  </form>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+      </div>
+    );
+  }
 
   return (
     <div className="App">
