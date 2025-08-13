@@ -77,7 +77,7 @@ const TabContent = ({ activeTab }) => {
                   </div>
                   <div className="card-body" style={{ color: "#5a3921" }}>
                     <ul className="list-unstyled mb-0">
-                      <li className="mb-2">GP</li>
+                      <li className="mb-2">Marco</li>
                       <li className="mb-2">Cole</li>
                       <li className="mb-2">Wyatt</li>
                       <li className="mb-2">Rob</li>
@@ -160,7 +160,7 @@ const TabContent = ({ activeTab }) => {
                   </div>
                   <div className="card-body" style={{ color: "#5a3921" }}>
                     <ul className="list-unstyled mb-0">
-                      <li className="mb-2">GP</li>
+                      <li className="mb-2">Marco</li>
                       <li className="mb-2">Ryan</li>
                       <li className="mb-2">Alec</li>
                       <li className="mb-2">Angelo</li>
@@ -228,8 +228,8 @@ const TabContent = ({ activeTab }) => {
                       <li className="mb-2">Connor</li>
                       <li className="mb-2">Marco</li>
                       <li className="mb-2">Angelo</li>
-                      <li className="mb-2">Jirak</li>
                       <li className="mb-2">Alec</li>
+                      <li className="mb-2">Klein</li>
                     </ul>
                   </div>
                 </div>
@@ -247,8 +247,7 @@ const TabContent = ({ activeTab }) => {
                   </div>
                   <div className="card-body" style={{ color: "#5a3921" }}>
                     <ul className="list-unstyled mb-0">
-                      <li className="mb-2">GP</li>
-                      <li className="mb-2">Klein</li>
+                      <li className="mb-2">Jirak</li>
                       <li className="mb-2">Wyatt</li>
                       <li className="mb-2">Rob</li>
                       <li className="mb-2">Cole</li>
@@ -423,8 +422,7 @@ function App() {
                 <>
                   <p className="text-center mb-3 mb-md-4">
                     Join us for an unforgettable golf weekend celebrating Jake's
-                    last days of freedom! Please RSVP by filling out the form
-                    below.
+                    last days of freedom!
                   </p>
 
                   <div className="event-details mb-3 mb-md-4">

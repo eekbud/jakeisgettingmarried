@@ -25,8 +25,8 @@ const Schedule = () => {
                 cottages.
               </p>
               <p>
-                Enjoy a 5-hour boat excursion on Table Rock Lake with a Tahoe
-                T-21 boat rental.
+                Enjoy a 5-hour boat excursion on Table Rock Lake. Drinks, wake
+                boarding all the fun!
               </p>
             </div>
           </li>
