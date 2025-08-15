@@ -26,7 +26,7 @@ const Schedule = () => {
               </p>
               <p>
                 Enjoy a 5-hour boat excursion on Table Rock Lake. Drinks, wake
-                boarding all the fun!
+                boarding, all the fun!
               </p>
             </div>
           </li>
