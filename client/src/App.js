@@ -56,7 +56,7 @@ const TabContent = ({ activeTab }) => {
                   </div>
                   <div className="card-body" style={{ color: "#5a3921" }}>
                     <ul className="list-unstyled mb-0">
-                      <li className="mb-2">Ryan</li>
+                      <li className="mb-2">Marco</li>
                       <li className="mb-2">Connor</li>
                       <li className="mb-2">Angelo</li>
                       <li className="mb-2">Klein</li>
@@ -77,7 +77,7 @@ const TabContent = ({ activeTab }) => {
                   </div>
                   <div className="card-body" style={{ color: "#5a3921" }}>
                     <ul className="list-unstyled mb-0">
-                      <li className="mb-2">Marco</li>
+                      <li className="mb-2">Ryan</li>
                       <li className="mb-2">Cole</li>
                       <li className="mb-2">Wyatt</li>
                       <li className="mb-2">Rob</li>
@@ -395,7 +395,10 @@ function App() {
                     <button
                       type="submit"
                       className="btn btn-primary btn-lg w-100"
-                      style={{ backgroundColor: "#3a5134", borderColor: "#3a5134" }}
+                      style={{
+                        backgroundColor: "#3a5134",
+                        borderColor: "#3a5134",
+                      }}
                     >
                       Access Content
                     </button>
